@@ -1,6 +1,7 @@
 # Home SIEM Lab — Wazuh
 
 Lab de detecție și răspuns la incidente, construit folosind Wazuh (SIEM open-source), VirtualBox și Kali Linux.
+![VirtualBox](./screenshots/virtual-box.png)
 
 ## Arhitectură
 
@@ -8,6 +9,7 @@ Lab de detecție și răspuns la incidente, construit folosind Wazuh (SIEM open-
 - **Agent monitorizat** (Ubuntu Server, VM separat) — endpoint monitorizat de server
 - **Kali Linux** (VM) — mașină de atac, folosită pentru simulări
 - Toate VM-urile conectate printr-o rețea VirtualBox NAT Network privată
+![Wazuh Server](./screenshots/wazuh-endpoints.png)
 
 ## Ce am testat
 
