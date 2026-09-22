@@ -13,7 +13,8 @@ Lab de detecție și răspuns la incidente, construit folosind Wazuh (SIEM open-
 
 | Scenariu | Rezultat | Regulă declanșată |
 |---|---|---|
-| Brute-force SSH (Kali → agent) | Detectat | Rule 2502, nivel 10 |
+| Brute-force SSH (Kali → agent) | Detectat | Rule 2502, nivel 10 | 
+![Alerta brute-force](./wazuh-threat-intelligence.png)
 | Scanare porturi Nmap (Kali → agent) | Nedetectat — Wazuh e HIDS, nu monitorizează trafic de rețea din exterior fără o componentă NIDS suplimentară | — |
 | Modificare fișier critic (/etc/passwd) | Detectat, după activare monitorizare realtime (inotify) | grup syscheck, nivel 7 |
 
