@@ -17,7 +17,7 @@ Lab de detecție și răspuns la incidente, construit folosind Wazuh (SIEM open-
 ![Alerta brute-force](./screenshots/wazuh-threat-intelligence.png)
 | Scanare porturi Nmap (Kali → agent) | Nedetectat — Wazuh e HIDS, nu monitorizează trafic de rețea din exterior fără o componentă NIDS suplimentară | — |
 | Modificare fișier critic (/etc/passwd) | Detectat, după activare monitorizare realtime (inotify) | grup syscheck, nivel 7 |
-![FIM](./screenshots/wazuh-fim)
+![FIM](./screenshots/wazuh-fim.png)
 
 ## Documentație
 
