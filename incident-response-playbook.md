@@ -1,7 +1,6 @@
 # Incident Response Playbook — Home SIEM Lab (Wazuh)
 
-> Playbook scris pe baza scenariilor testate personal în lab-ul de mai sus.
-> Scop: pași clari de triaj și răspuns pentru un analist SOC L1, pentru fiecare tip de alertă întâlnit.
+> Playbook scris pe baza scenariilor testate în lab-ul de mai sus.
 
 ---
 
@@ -12,9 +11,9 @@
 **Sursă:** syslog / sshd, pe agentul monitorizat
 
 ### 1. Triaj inițial (primele 5 minute)
-- [ ] Verific IP-ul sursă al încercărilor — e o adresă internă (cunoscută, poate un coleg care a greșit parola) sau externă/necunoscută?
-- [ ] Verific câte încercări au avut loc și în ce interval de timp (concentrate = mai suspect; răspândite pe ore = posibil fals pozitiv)
-- [ ] Verific dacă a existat și o autentificare cu SUCCES imediat după eșecurile repetate — asta ar însemna acces obținut, nu doar încercare eșuată
+-Verific IP-ul sursă al încercărilor — e o adresă internă (cunoscută, poate un coleg care a greșit parola) sau externă/necunoscută?
+-Verific câte încercări au avut loc și în ce interval de timp (concentrate = mai suspect; răspândite pe ore = posibil fals pozitiv)
+-Verific dacă a existat și o autentificare cu SUCCES imediat după eșecurile repetate — asta ar însemna acces obținut, nu doar încercare eșuată
 
 ### 2. Decizie
 | Situație | Acțiune |
@@ -63,13 +62,8 @@
 
 ---
 
-## Lecție generală învățată în lab
+## Lecție învățată în lab
 
 La testarea FIM, am descoperit că alerta poate să **nu ajungă la server** dacă serviciul agentului se oprește exact în timpul sincronizării — local, modificarea era detectată, dar niciodată transmisă. Concluzie practică pentru un analist real: **lipsa unei alerte nu înseamnă automat că nu s-a întâmplat nimic** — merită verificat și la nivel de agent local (log-uri, servicii active), nu doar în dashboard-ul central.
 
 ---
-
-## Note pentru extindere viitoare
-
-- [ ] Adaugă playbook pentru alertă de malware/fișier suspect (după testare EICAR + VirusTotal)
-- [ ] Adaugă playbook pentru scanare de porturi (necesită integrare NIDS separată, ex. Suricata)
