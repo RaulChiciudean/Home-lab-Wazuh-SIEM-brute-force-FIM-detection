@@ -19,7 +19,7 @@ Lab de detecție și răspuns la incidente, construit folosind Wazuh (SIEM open-
 
 ## Documentație
 
-- [jurnal-home-siem.md](./jurnal-home-siem.md) — jurnalul complet al proiectului: pași urmați, erori întâlnite, cum le-am rezolvat, ce am învățat
+- [jurnal Home SIEM lab.md](./jurnal-home-siem.md) — jurnalul complet al proiectului: pași urmați, erori întâlnite, cum le-am rezolvat, ce am învățat
 - [incident-response-playbook.md](./incident-response-playbook.md) — playbook de triaj și răspuns pentru fiecare tip de alertă testată
 
 ## Ce am învățat
