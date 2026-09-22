@@ -1,1 +1,27 @@
 # Home-lab-Wazuh-SIEM-brute-force-FIM-detection
+Home SIEM Lab — Wazuh
+
+Lab personal de detecție și răspuns la incidente, construit de la zero folosind Wazuh (SIEM open-source), VirtualBox și Kali Linux. Proiect realizat ca parte a pregătirii pentru o poziție de SOC L1 / System Administrator.
+
+Arhitectură
+Server Wazuh (Ubuntu Server, VM) — manager + indexer + dashboard, instalare all-in-one
+Agent monitorizat (Ubuntu Server, VM separat) — endpoint monitorizat de server
+Kali Linux (VM) — mașină de atac, folosită pentru simulări
+Toate VM-urile conectate printr-o rețea VirtualBox NAT Network privată
+Ce am testat
+Scenariu	Rezultat	Regulă declanșată
+Brute-force SSH (Kali → agent)	✅ Detectat	Rule 2502, nivel 10
+Scanare porturi Nmap (Kali → agent)	❌ Nedetectat — Wazuh e HIDS, nu monitorizează trafic de rețea din exterior fără o componentă NIDS suplimentară	—
+Modificare fișier critic (/etc/passwd)	✅ Detectat, după activare monitorizare realtime (inotify)	grup syscheck, nivel 7
+Documentație
+jurnal-home-siem.md — jurnalul complet al proiectului: pași urmați, erori întâlnite, cum le-am rezolvat, ce am învățat
+incident-response-playbook.md — playbook de triaj și răspuns pentru fiecare tip de alertă testată
+Ce am învățat
+Configurare rețea VirtualBox (Bridged vs NAT vs NAT Network) și impactul asupra performanței
+Diferența dintre scanare periodică și monitorizare în timp real (inotify) în FIM
+Debugging sistematic: izolarea unei probleme de rețea lentă folosind top, ps aux, teste de viteză
+Diferența dintre un HIDS (Wazuh) și un NIDS — ce poate și ce nu poate detecta fiecare
+Scrierea unui playbook de răspuns la incident, bazat pe scenarii testate personal, nu pe teorie
+Tehnologii folosite
+
+Wazuh 4.14.7, VirtualBox, Ubuntu Server, Kali Linux, SSH
