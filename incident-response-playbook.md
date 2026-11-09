@@ -1,69 +1,75 @@
 # Incident Response Playbook — Home SIEM Lab (Wazuh)
 
-> Playbook scris pe baza scenariilor testate în lab-ul de mai sus.
+> Playbook written from the scenarios tested in this lab.
 
 ---
 
-## Playbook #1 — SSH Brute-Force Detectat
+## Playbook #1: SSH Brute Force Detected
 
-**Regulă declanșată:** ID 2502 — "User missed the password more than one time"
-**Nivel:** 10 (mediu-ridicat)
-**Sursă:** syslog / sshd, pe agentul monitorizat
+**Rule triggered:** ID 2502, "User missed the password more than one time"
+**Level:** 10 (medium-high)
+**Source:** syslog / sshd, on the monitored agent
 
-### 1. Triaj inițial (primele 5 minute)
-**-Verific IP-ul sursă al încercărilor — e o adresă internă (cunoscută, poate un coleg care a greșit parola) sau externă/necunoscută?**
-**-Verific câte încercări au avut loc și în ce interval de timp (concentrate = mai suspect; răspândite pe ore = posibil fals pozitiv)**
-**-Verific dacă a existat și o autentificare cu SUCCES imediat după eșecurile repetate — asta ar însemna acces obținut, nu doar încercare eșuată**
+### 1. Initial triage (first 5 minutes)
 
-### 2. Decizie
-| Situație | Acțiune |
+- Check the source IP of the attempts: is it an internal, known address (possibly a colleague who mistyped a password) or an external/unknown one?
+- Check how many attempts occurred and over what time frame (concentrated attempts are more suspicious; attempts spread over hours may be a false positive).
+- Check whether a **successful** login happened right after the repeated failures. That would mean access was obtained, not just attempted.
+
+### 2. Decision
+
+| Situation | Action |
 |---|---|
-| IP intern cunoscut, câteva eșecuri izolate | Fals pozitiv probabil — documentez și închid |
-| IP extern/necunoscut, eșecuri concentrate, fără succes | Suspect — trec la Containment |
-| Eșecuri + autentificare reușită ulterior | **Escaladare imediată** — posibil compromis activ |
+| Known internal IP, a few isolated failures | Probable false positive: document and close |
+| External/unknown IP, concentrated failures, no success | Suspicious: move to containment |
+| Failures followed by a successful login | **Escalate immediately**: possible active compromise |
 
-### 3. Containment (dacă e confirmat suspect)
-**-Blochez temporar IP-ul sursă la nivel de firewall (`ufw deny from <IP>` pe agent, sau regulă la nivel de rețea)**
-**Verific pe agent dacă există sesiuni SSH active suspecte: `who` / `last`**
-**Dacă a existat autentificare reușită: schimb imediat parola contului vizat, verific istoricul de comenzi (`.bash_history`) pentru activitate suspectă**
+### 3. Containment (if confirmed suspicious)
 
-### 4. Documentare
-**-Notez: IP sursă, cont vizat, oră start/final, nr. total încercări, acțiune luată**
-**Dacă a fost fals pozitiv, notez motivul (util pentru a ajusta pragul de alertă pe viitor)**
+- Temporarily block the source IP at firewall level (`ufw deny from <IP>` on the agent, or a network-level rule).
+- Check the agent for suspicious active SSH sessions: `who` / `last`.
+- If a login succeeded: change the targeted account's password immediately and review the command history (`.bash_history`) for suspicious activity.
+
+### 4. Documentation
+
+- Record: source IP, targeted account, start/end time, total number of attempts, action taken.
+- If it was a false positive, record the reason (useful for tuning the alert threshold in the future).
 
 ---
 
-## Playbook #2 — Modificare Fișier Critic Detectată (FIM)
+## Playbook #2: Critical File Modification Detected (FIM)
 
-**Regulă declanșată:** grup `syscheck`, eveniment `modified`
-**Fișier de exemplu testat:** `/etc/passwd`
-**Nivel:** 7 (mediu)
+**Rule triggered:** `syscheck` group, `modified` event
+**Example file tested:** `/etc/passwd`
+**Level:** 7 (medium)
 
-### 1. Triaj inițial
-**-Ce fișier exact s-a modificat? (`/etc/passwd`, `/etc/shadow`, un binar din `/usr/bin`, etc. — nivelul de gravitate diferă enorm după fișier)**
-**-Cine avea acces la momentul modificării — a fost o schimbare planificată (update de sistem, admin cunoscut) sau neașteptată?**
-**-Verific diff-ul exact (ce linie s-a adăugat/șters/modificat), nu doar faptul că s-a schimbat**
+### 1. Initial triage
 
-### 2. Decizie
-| Situație | Acțiune |
+- Which exact file was modified? (`/etc/passwd`, `/etc/shadow`, a binary in `/usr/bin`, etc.; severity differs enormously by file.)
+- Who had access at the time of the modification? Was it a planned change (system update, known admin) or an unexpected one?
+- Check the exact diff (which line was added, removed or changed), not just the fact that the file changed.
+
+### 2. Decision
+
+| Situation | Action |
 |---|---|
-| Modificare din update de sistem cunoscut (`apt upgrade`) | Fals pozitiv — documentez |
-| Modificare neexplicată, dar fișier cu impact redus | Investighez mai departe, nu urgentă |
-| Modificare neexplicată pe fișier critic (`/etc/passwd`, `/etc/shadow`, binare de sistem) | **Escaladare imediată** |
+| Modification from a known system update (`apt upgrade`) | False positive: document |
+| Unexplained modification, but low-impact file | Investigate further, not urgent |
+| Unexplained modification on a critical file (`/etc/passwd`, `/etc/shadow`, system binaries) | **Escalate immediately** |
 
-### 3. Containment (dacă e confirmat suspect)
-**-Compar fișierul curent cu un backup/versiune cunoscută bună (dacă există)**
-**-Verific dacă a apărut un utilizator nou neautorizat (relevant mai ales pentru `/etc/passwd`): `cat /etc/passwd | tail -5`**
-**-Verific procese active suspecte și conexiuni de rețea neobișnuite: `ps aux`, `netstat -tulpn`**
-**-Izolez sistemul de rețea dacă suspiciunea e mare (oprire temporară a interfeței de rețea)**
+### 3. Containment (if confirmed suspicious)
 
-### 4. Documentare
-**-Notez: fișier modificat, ce s-a schimbat exact (diff), ora, cine avea acces, acțiune luată**
+- Compare the current file with a backup or known-good version (if one exists).
+- Check whether an unauthorized new user appeared (especially relevant for `/etc/passwd`): `tail -5 /etc/passwd`.
+- Check for suspicious active processes and unusual network connections: `ps aux`, `netstat -tulpn`.
+- Isolate the system from the network if suspicion is high (temporarily bring the network interface down).
 
----
+### 4. Documentation
 
-## Lecție învățată în lab
-
-La testarea FIM, am descoperit că alerta poate să **nu ajungă la server** dacă serviciul agentului se oprește exact în timpul sincronizării — local, modificarea era detectată, dar niciodată transmisă. Concluzie practică pentru un analist real: **lipsa unei alerte nu înseamnă automat că nu s-a întâmplat nimic** — merită verificat și la nivel de agent local (log-uri, servicii active), nu doar în dashboard-ul central.
+- Record: modified file, exactly what changed (diff), time, who had access, action taken.
 
 ---
+
+## Lesson learned in the lab
+
+When testing FIM, I discovered that an alert may **never reach the server** if the agent service stops exactly while syncing. The modification was detected locally but never transmitted. Practical takeaway for a real analyst: **the absence of an alert does not automatically mean nothing happened**. It is worth checking at the local agent level (logs, running services), not only in the central dashboard.
