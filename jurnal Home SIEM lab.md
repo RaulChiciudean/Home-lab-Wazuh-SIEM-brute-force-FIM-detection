@@ -1,44 +1,57 @@
-Implementare Home SIEM lab - Wazuh:
+# Home SIEM Lab — Wazuh: Build Journal
 
-Voi documenta fiecare pas si dificultate.
+I document every step and every difficulty I ran into while building this lab.
 
-1.Am instalat Ubuntu pe VirtualBox, apoi am incercat sa ma conectez cu SSH.
-Problema: Am primit Connection refused din cauza ca serverul nu este pornit
-Cauza: Nu am instalat pachetele pentru OpenSSH server - lipsa de pachete
-Solutie: Instalare OpenSSH server -- 1.sudo apt install-server -y
-									 2.sudo systemctl status ssh 
-									 
+## 1. Installing Ubuntu and connecting over SSH
 
-2.Am rulat comanda de instalare a serverului Wazuh, instalarea s-a blocat fara progres.
-Problema: Instalarea serverului Wazuh nu mai progresa.
-Cauza: Conexiunea la internet era slaba
-Diagnosticare: Am rulat top si ps aux ca sa vad daca instalarea mai era in proces, apoi am rulat un test pentru conexiunea la internet si am observat
-		ca se descarca cu 11Kb/s.
-Solutie: Schimbare Network ului din Brigde Adapter Wifi in NAT Network + Port Forwarding
+I installed Ubuntu on VirtualBox, then tried to connect with SSH.
 
+- **Problem:** `Connection refused`, because the SSH server was not running.
+- **Cause:** the OpenSSH server package was not installed.
+- **Solution:** install the OpenSSH server and check its status:
 
-3.Simulare brute-force SSH din Kali catre agent.
-M-am conectat cu ssh la client, acesta m-a limitat doar la 3 incercari de conectare. Am rulat comanda repetat introducand parola gresita.
+```bash
+sudo apt install openssh-server -y
+sudo systemctl status ssh
+```
 
-Apoi in verificat in Dashboard-ul din Wazuh: 32 auth failures, unde inital am crezut ca am 0 alerte de nivel mare.
-Exista o alerta de nivel 10 cu descrierea: "syslog: User missed the password more than one time" si id-ul 2502.
+## 2. Installing the Wazuh server
 
+I ran the Wazuh server installation command, but the installation hung with no progress.
 
-4.Am testat detectarea unei scanari Nmap si am constat ca Wazuh, ca solutie HIDS (Host-based Intrusion Detection System) 
-nu detecteaza activitate de scanare de retea din exterior.
-Pentru asta ai nevoie de o componenta de NIDS (Network Intrusion Detection System) cum ar fi Suricate.
+- **Problem:** the installation stopped making progress.
+- **Cause:** a slow internet connection.
+- **Diagnosis:** I ran `top` and `ps aux` to check whether the installation was still running, then ran a connection speed test and saw downloads at only 11 KB/s.
+- **Solution:** I changed the VM network from Bridged Adapter (Wi-Fi) to NAT Network + Port Forwarding.
 
+## 3. SSH brute-force simulation (Kali → agent)
 
-5.Testare File Integrity Monitoring.
-Am testat daca Wazuh detecteaza modificari la /etc/passwd: am modificat fisierul, am dat restart la agent, m-am uitat in dahsboard si nu a aparut nimic
-Comenzi: echo "# test FIM" | sudo tee -a /etc/passwd
-			   sudo systemctl restart wazuh-agent
-			   sudo sed -n '114p' /var/ossec/etc/ossec.conf   (verificare config)
-			   sudo nano /var/ossec/etc/ossec.conf   (adăugat realtime="yes" pe linia <directories>)
-Erori intalnite: Alerta FIM lipsea complet, Serviciul se oprea exact in timpul evenimentului trimiterii catre server (scan local reusea, dar sincronizarea era intrerupta),
-				am rezolvat-o renuntand la scan-pe-restart si am activat monitorizarea realtime, care detecteaza instant, fara restart
-				
-**Ceva nou ce am invata**:
--FIM functioneaza pe baza ce checksum: Wazuh calculeaza o amprenta a fiecarui fisier monitorizat si o compara periodic cu una salvata local.
-									   Daca difera e semn ca s-a schimbat
--exista 2 moduri de verificare: una periodica si una realtime
+I connected to the agent over SSH from Kali. SSH limited me to 3 attempts per connection, so I ran the command repeatedly, entering a wrong password each time.
+
+I then checked the Wazuh dashboard: it showed 32 authentication failures. At first I thought there were no high-level alerts, but there was a level 10 alert with the description "syslog: User missed the password more than one time" and rule ID 2502.
+
+## 4. Nmap scan detection test
+
+I tested whether an Nmap scan would be detected, and found that Wazuh, as a HIDS (Host-based Intrusion Detection System), does not detect network scanning activity coming from outside the host. For that you need a NIDS (Network Intrusion Detection System) component, such as Suricata.
+
+## 5. File Integrity Monitoring test
+
+I tested whether Wazuh detects modifications to `/etc/passwd`: I modified the file, restarted the agent and checked the dashboard, but nothing appeared.
+
+Commands used:
+
+```bash
+echo "# test FIM" | sudo tee -a /etc/passwd
+sudo systemctl restart wazuh-agent
+sudo sed -n '114p' /var/ossec/etc/ossec.conf   # check the config
+sudo nano /var/ossec/etc/ossec.conf            # added realtime="yes" on the <directories> line
+```
+
+- **Problem:** the FIM alert was missing entirely.
+- **Cause:** the service stopped exactly while the event was being sent to the server. The local scan succeeded, but synchronization was interrupted.
+- **Solution:** I dropped scan-on-restart and enabled real-time monitoring, which detects changes instantly, without a restart.
+
+## What I learned
+
+- FIM works on checksums: Wazuh computes a fingerprint of every monitored file and compares it with one stored locally. If they differ, the file has changed.
+- There are 2 verification modes: periodic and real-time.
